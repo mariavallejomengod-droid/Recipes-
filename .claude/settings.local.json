@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npx vite:*)",
+      "Bash(node -e \":*)",
+      "Bash(node --input-type=module -e \":*)",
+      "Bash(curl -s http://localhost:5199/)",
+      "Bash(npx playwright:*)",
+      "Bash(pip install:*)",
+      "Bash(where python:*)",
+      "Bash(where pip:*)",
+      "Bash(where python3:*)",
+      "Bash(where py:*)",
+      "Bash(pandoc \"C:\\\\Users\\\\mvallejo\\\\Documents\\\\Recipes\\\\recetas.docx\" -o /tmp/recetas.md)",
+      "Read(//tmp/**)",
+      "Bash(npm run:*)",
+      "Bash(where gh:*)",
+      "Bash(where git:*)"
+    ]
+  }
+}
