@@ -18,7 +18,8 @@
       "Read(//tmp/**)",
       "Bash(npm run:*)",
       "Bash(where gh:*)",
-      "Bash(where git:*)"
+      "Bash(where git:*)",
+      "Bash(git add:*)"
     ]
   }
 }

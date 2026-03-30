@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, X, Type, RotateCcw, CopyPlus } from 'lucide-react'
-import { getWeeklyPlan, saveWeeklyPlan, getMonday, formatWeekKey, formatDateRange } from '../utils/storage'
+import { ChevronLeft, ChevronRight, X, Type, RotateCcw, CopyPlus, ShoppingCart, Plus, Check } from 'lucide-react'
+import { getWeeklyPlan, saveWeeklyPlan, getMonday, formatWeekKey, formatDateRange, getShoppingList, saveShoppingList } from '../utils/storage'
 import { useTranslation } from '../i18n'
 
 const FREETEXT_PREFIX = 'freetext:'
@@ -25,6 +25,10 @@ export default function WeekPlanner({ recipes }) {
   const [sourceFilter, setSourceFilter] = useState('all')
   const [freeTextMode, setFreeTextMode] = useState(false)
   const [freeTextValue, setFreeTextValue] = useState('')
+  // Shopping items step after free text
+  const [shoppingStep, setShoppingStep] = useState(false)
+  const [shoppingInput, setShoppingInput] = useState('')
+  const [addedItems, setAddedItems] = useState([])
 
   const weekKey = formatWeekKey(currentMonday)
 
@@ -70,7 +74,26 @@ export default function WeekPlanner({ recipes }) {
     }
     setPlan(updated)
     saveWeeklyPlan(weekKey, updated)
-    closeModal()
+    // Move to shopping items step instead of closing
+    setShoppingStep(true)
+    setAddedItems([])
+    setShoppingInput('')
+  }
+
+  function addShoppingItem() {
+    if (!shoppingInput.trim()) return
+    const item = {
+      nombre: shoppingInput.trim(),
+      cantidad: 0,
+      unidad: '',
+      categoria: 'other',
+      comprado: false,
+      manual: true,
+    }
+    const currentList = getShoppingList(weekKey) || []
+    saveShoppingList(weekKey, [...currentList, item])
+    setAddedItems(prev => [...prev, shoppingInput.trim()])
+    setShoppingInput('')
   }
 
   function closeModal() {
@@ -79,6 +102,9 @@ export default function WeekPlanner({ recipes }) {
     setSourceFilter('all')
     setFreeTextMode(false)
     setFreeTextValue('')
+    setShoppingStep(false)
+    setShoppingInput('')
+    setAddedItems([])
   }
 
   function clearSlot(day, slot) {
@@ -214,10 +240,18 @@ export default function WeekPlanner({ recipes }) {
             <div className="flex items-center justify-between p-4 border-b border-warm-200">
               <div>
                 <h3 className="font-semibold text-black text-base">
-                  {freeTextMode ? t('planner.typeYourMeal') : t('planner.selectRecipe')}
+                  {shoppingStep
+                    ? t('planner.addShoppingItems')
+                    : freeTextMode
+                      ? t('planner.typeYourMeal')
+                      : t('planner.selectRecipe')
+                  }
                 </h3>
                 <p className="text-sm text-black/50">
-                  {t(`day.${selectingSlot.day}`)} - {t(`cat.${selectingSlot.slot}`)}
+                  {shoppingStep
+                    ? freeTextValue
+                    : `${t(`day.${selectingSlot.day}`)} - ${t(`cat.${selectingSlot.slot}`)}`
+                  }
                 </p>
               </div>
               <button onClick={closeModal} className="text-black/40">
@@ -225,7 +259,58 @@ export default function WeekPlanner({ recipes }) {
               </button>
             </div>
 
-            {freeTextMode ? (
+            {shoppingStep ? (
+              /* Shopping items step */
+              <div className="p-4 space-y-3">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder={t('planner.shoppingPlaceholder')}
+                    value={shoppingInput}
+                    onChange={e => setShoppingInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addShoppingItem() } }}
+                    autoFocus
+                    className="flex-1 px-3 py-2.5 border border-warm-200 rounded-lg text-base text-black focus:outline-none focus:border-sage-400"
+                  />
+                  <button
+                    onClick={addShoppingItem}
+                    disabled={!shoppingInput.trim()}
+                    className="px-4 py-2.5 rounded-lg bg-sage-600 text-white text-sm font-medium hover:bg-sage-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Plus size={18} />
+                  </button>
+                </div>
+
+                {/* Items already added */}
+                {addedItems.length > 0 && (
+                  <div className="space-y-1.5">
+                    {addedItems.map((item, i) => (
+                      <div key={i} className="flex items-center gap-2 text-sm text-sage-700 bg-sage-50 rounded-lg px-3 py-2">
+                        <Check size={14} className="shrink-0" />
+                        <span>{item}</span>
+                        <span className="text-sage-400 text-xs ml-auto">{t('planner.itemAdded')}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <button
+                  onClick={closeModal}
+                  className="w-full py-2.5 rounded-lg text-base font-medium transition-colors bg-sage-600 text-white hover:bg-sage-700"
+                >
+                  {t('planner.done')}
+                </button>
+
+                {addedItems.length === 0 && (
+                  <button
+                    onClick={closeModal}
+                    className="w-full text-center text-sm text-black/40 hover:text-black/60 transition-colors"
+                  >
+                    {t('planner.skip')}
+                  </button>
+                )}
+              </div>
+            ) : freeTextMode ? (
               <div className="p-4 space-y-3">
                 <input
                   type="text"

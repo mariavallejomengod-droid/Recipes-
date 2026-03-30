@@ -23,6 +23,12 @@ const translations = {
   'planner.resetWeek': { en: 'Reset week', es: 'Reiniciar semana', pl: 'Resetuj tydzień' },
   'planner.resetConfirm': { en: 'Clear all meals for this week?', es: '¿Borrar todas las comidas de esta semana?', pl: 'Wyczyścić wszystkie posiłki na ten tydzień?' },
   'planner.copyAll': { en: 'Copy to all days', es: 'Copiar a todos los días', pl: 'Kopiuj na wszystkie dni' },
+  'planner.addShoppingItems': { en: 'Add items to shopping list?', es: '¿Añadir artículos a la lista de la compra?', pl: 'Dodać produkty do listy zakupów?' },
+  'planner.shoppingPlaceholder': { en: 'e.g. Bread, cheese, ham...', es: 'Ej. Pan, queso, jamón...', pl: 'Np. Chleb, ser, szynka...' },
+  'planner.addItem': { en: 'Add', es: 'Añadir', pl: 'Dodaj' },
+  'planner.done': { en: 'Done', es: 'Listo', pl: 'Gotowe' },
+  'planner.skip': { en: 'Skip', es: 'Saltar', pl: 'Pomiń' },
+  'planner.itemAdded': { en: 'added', es: 'añadido', pl: 'dodano' },
 
   // ShoppingList
   'shopping.title': { en: 'Shopping list', es: 'Lista de la compra', pl: 'Lista zakupów' },
@@ -299,6 +305,13 @@ export function LanguageProvider({ children }) {
     })
   }, [])
 
+  const changeLang = useCallback((newLang) => {
+    if (LANGUAGES.includes(newLang)) {
+      localStorage.setItem('recetario_lang', newLang)
+      setLang(newLang)
+    }
+  }, [])
+
   const t = useCallback((key) => {
     const entry = translations[key]
     if (!entry) return key
@@ -307,7 +320,7 @@ export function LanguageProvider({ children }) {
   }, [lang])
 
   return (
-    <LangContext.Provider value={{ lang, toggle, t, LANG_LABELS, LANG_SHORT }}>
+    <LangContext.Provider value={{ lang, toggle, changeLang, t, LANGUAGES, LANG_LABELS, LANG_SHORT }}>
       {children}
     </LangContext.Provider>
   )

@@ -1,9 +1,26 @@
 import { Outlet, NavLink } from 'react-router-dom'
 import { BookOpen, Calendar, ShoppingCart, Salad, Globe } from 'lucide-react'
 import { useTranslation } from '../i18n'
+import { useState, useRef, useEffect } from 'react'
 
 export default function Layout() {
-  const { lang, toggle, t, LANG_LABELS, LANG_SHORT } = useTranslation()
+  const { lang, changeLang, t, LANGUAGES, LANG_LABELS, LANG_SHORT } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const desktopRef = useRef(null)
+  const mobileRef = useRef(null)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClick(e) {
+      if (
+        desktopRef.current && desktopRef.current.contains(e.target) ||
+        mobileRef.current && mobileRef.current.contains(e.target)
+      ) return
+      setOpen(false)
+    }
+    if (open) document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [open])
 
   const navItems = [
     { to: '/', icon: Calendar, label: t('nav.week') },
@@ -11,6 +28,11 @@ export default function Layout() {
     { to: '/recipes', icon: BookOpen, label: t('nav.recipes') },
     { to: '/shopping', icon: ShoppingCart, label: t('nav.shopping') },
   ]
+
+  function selectLang(l) {
+    changeLang(l)
+    setOpen(false)
+  }
 
   return (
     <div className="min-h-screen pb-20 md:pb-0 md:flex">
@@ -39,28 +61,64 @@ export default function Layout() {
             </NavLink>
           ))}
         </div>
-        <div className="mt-auto pt-4 border-t border-warm-200">
+        <div className="mt-auto pt-4 border-t border-warm-200 relative" ref={desktopRef}>
           <button
-            onClick={toggle}
+            onClick={() => setOpen(!open)}
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-black/60 hover:bg-warm-100 hover:text-black transition-colors w-full"
           >
             <Globe size={18} />
             {LANG_LABELS[lang]}
           </button>
+          {open && (
+            <div className="absolute bottom-full left-0 mb-1 w-full bg-white border border-warm-200 rounded-lg shadow-lg overflow-hidden z-50">
+              {LANGUAGES.map(l => (
+                <button
+                  key={l}
+                  onClick={() => selectLang(l)}
+                  className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                    l === lang
+                      ? 'bg-sage-50 text-sage-700 font-medium'
+                      : 'text-black/60 hover:bg-warm-50 hover:text-black'
+                  }`}
+                >
+                  {LANG_LABELS[l]}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </nav>
 
       {/* Main content */}
       <main className="flex-1 md:ml-56">
-        {/* Mobile language toggle */}
+        {/* Mobile language dropdown */}
         <div className="md:hidden flex justify-end px-4 pt-3">
-          <button
-            onClick={toggle}
-            className="flex items-center gap-1.5 text-xs text-black/50 border border-warm-200 px-2.5 py-1.5 rounded-lg hover:bg-warm-50 transition-colors"
-          >
-            <Globe size={14} />
-            {LANG_SHORT[lang]}
-          </button>
+          <div className="relative" ref={mobileRef}>
+            <button
+              onClick={() => setOpen(!open)}
+              className="flex items-center gap-1.5 text-xs text-black/50 border border-warm-200 px-2.5 py-1.5 rounded-lg hover:bg-warm-50 transition-colors"
+            >
+              <Globe size={14} />
+              {LANG_SHORT[lang]}
+            </button>
+            {open && (
+              <div className="absolute right-0 top-full mt-1 bg-white border border-warm-200 rounded-lg shadow-lg overflow-hidden z-50 min-w-28">
+                {LANGUAGES.map(l => (
+                  <button
+                    key={l}
+                    onClick={() => selectLang(l)}
+                    className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                      l === lang
+                        ? 'bg-sage-50 text-sage-700 font-medium'
+                        : 'text-black/60 hover:bg-warm-50 hover:text-black'
+                    }`}
+                  >
+                    {LANG_LABELS[l]}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <div className="max-w-4xl mx-auto px-4 py-6">
           <Outlet />
